@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block title %}Liquidación de {{ r.trabajador.nombre }}{% endblock %}
+{% macro bs(v) %}Bs. {{ '{:,.2f}'.format(v) }}{% endmacro %}
+{% block content %}
+
+<div class="result-head">
+  <div>
+    <h2>Liquidación de {{ r.trabajador.nombre }}</h2>
+    <p>C.I. {{ r.trabajador.cedula }} &middot; {{ r.trabajador.motivo_retiro.etiqueta }}
+       &middot; Antigüedad: {{ r.antiguedad.descripcion() }}</p>
+  </div>
+  <div class="export">
+    <a class="btn" href="{{ url_for('export_pdf') }}">Exportar PDF</a>
+    <a class="btn" href="{{ url_for('export_excel') }}">Exportar Excel</a>
+    <a class="btn ghost" href="{{ url_for('index') }}">Editar datos</a>
+  </div>
+</div>
+
+<section class="card">
+  <h3>Bases salariales</h3>
+  <div class="bases">
+    <div><span>Salario mensual</span><strong>{{ bs(r.salario_mensual_normal) }}</strong></div>
+    <div><span>Salario diario normal</span><strong>{{ bs(r.salario_diario_normal) }}</strong></div>
+    <div><span>Alícuota utilidades</span><strong>{{ bs(r.alicuota_utilidades) }}</strong></div>
+    <div><span>Alícuota bono vacacional</span><strong>{{ bs(r.alicuota_bono_vacacional) }}</strong></div>
+    <div class="highlight"><span>Salario integral diario</span><strong>{{ bs(r.salario_integral_diario) }}</strong></div>
+  </div>
+</section>
+
+<section class="card">
+  <h3>Comparativa de prestaciones (Art. 142)</h3>
+  <div class="compare">
+    <div class="{{ 'winner' if 'Garantía' in r.metodo_prestaciones }}">
+      <h4>Garantía + días adicionales (a/b/c)</h4>
+      <p>{{ r.dias_garantia }} días + {{ r.dias_adicionales }} adicionales</p>
+      <strong>{{ bs(r.monto_garantia) }}</strong>
+    </div>
+    <div class="vs">VS</div>
+    <div class="{{ 'winner' if 'Retroactivo' in r.metodo_prestaciones }}">
+      <h4>Retroactivo (d)</h4>
+      <p>{{ r.dias_retroactivo }} días × salario integral</p>
+      <strong>{{ bs(r.monto_retroactivo) }}</strong>
+    </div>
+  </div>
+  <p class="note">Se adjudica el <strong>monto mayor</strong> (Art. 142 lit. d): {{ r.metodo_prestaciones }}.</p>
+</section>
+
+<section class="card">
+  <h3>Desglose de la liquidación</h3>
+  <table class="desglose">
+    <thead><tr><th>Concepto</th><th>Artículo</th><th>Días</th><th>Base</th><th>Monto</th></tr></thead>
+    <tbody>
+      {% for a in r.asignaciones %}
+      <tr>
+        <td>{{ a.concepto }}</td>
+        <td class="art">{{ a.articulo }}</td>
+        <td class="num">{{ '%g'|format(a.dias) if a.dias is not none else '' }}</td>
+        <td class="num">{{ bs(a.base) if a.base is not none else '' }}</td>
+        <td class="num">{{ bs(a.monto) }}</td>
+      </tr>
+      {% endfor %}
+      <tr class="subtotal"><td colspan="4">TOTAL ASIGNACIONES</td><td class="num">{{ bs(r.total_asignaciones) }}</td></tr>
+      {% for d in r.deducciones %}
+      <tr class="ded">
+        <td>(-) {{ d.concepto }}</td><td class="art">{{ d.articulo }}</td><td></td><td></td>
+        <td class="num">{{ bs(d.monto) }}</td>
+      </tr>
+      {% endfor %}
+      <tr class="subtotal"><td colspan="4">TOTAL DEDUCCIONES</td><td class="num">{{ bs(r.total_deducciones) }}</td></tr>
+      <tr class="neto"><td colspan="4">NETO A PAGAR</td><td class="num">{{ bs(r.neto_pagar) }}</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section class="card">
+  <h3>Memoria de cálculo (paso a paso)</h3>
+  <ol class="memoria">
+    {% for linea in r.memoria %}<li>{{ linea }}</li>{% endfor %}
+  </ol>
+</section>
+{% endblock %}

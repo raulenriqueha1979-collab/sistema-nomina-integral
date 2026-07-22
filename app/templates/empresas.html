@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}Empresas · Sistema de Nómina Integral{% endblock %}
+{% block content %}
+
+<section class="card">
+  <h2 id="form-empresa">Registrar / editar empresa</h2>
+  <form method="post" action="{{ url_for('guardar_empresa') }}">
+    <input type="hidden" name="empresa_id" id="f_empresa_id" value="">
+    <div class="row">
+      <label>Nombre / Razón social *
+        <input type="text" name="nombre" id="f_nombre" required placeholder="Mi Empresa, C.A.">
+      </label>
+      <label>RIF
+        <input type="text" name="rif" id="f_rif" placeholder="J-000000000">
+      </label>
+    </div>
+    <label>Dirección fiscal
+      <input type="text" name="direccion" id="f_direccion" placeholder="Av. Principal, Caracas">
+    </label>
+    <div class="actions">
+      <button type="button" class="btn ghost" onclick="limpiarEmpresa()">Nueva empresa</button>
+      <button type="submit" class="btn primary">Guardar empresa</button>
+    </div>
+  </form>
+</section>
+
+<section class="card">
+  <h2>Empresas registradas</h2>
+  {% if empresas %}
+  <table>
+    <thead><tr><th>Nombre</th><th>RIF</th><th>Dirección</th><th></th></tr></thead>
+    <tbody>
+    {% for e in empresas %}
+      <tr>
+        <td>{{ e.nombre }}</td>
+        <td>{{ e.rif or '-' }}</td>
+        <td>{{ e.direccion or '-' }}</td>
+        <td class="ficha-acc">
+          <button type="button" class="btn small"
+            onclick="editarEmpresa('{{ e.id }}', {{ e.nombre|tojson }}, {{ (e.rif or '')|tojson }}, {{ (e.direccion or '')|tojson }})">Editar</button>
+          <form method="post" action="{{ url_for('borrar_empresa', empresa_id=e.id) }}" onsubmit="return confirm('¿Eliminar empresa?')">
+            <button class="btn small danger" type="submit">Eliminar</button>
+          </form>
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p>Aún no hay empresas. Crea la primera con el formulario de arriba.</p>
+  {% endif %}
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function editarEmpresa(id, nombre, rif, direccion) {
+  document.getElementById('f_empresa_id').value = id;
+  document.getElementById('f_nombre').value = nombre;
+  document.getElementById('f_rif').value = rif;
+  document.getElementById('f_direccion').value = direccion;
+  document.getElementById('form-empresa').scrollIntoView({behavior: 'smooth'});
+}
+function limpiarEmpresa() {
+  document.getElementById('f_empresa_id').value = '';
+  document.getElementById('f_nombre').value = '';
+  document.getElementById('f_rif').value = '';
+  document.getElementById('f_direccion').value = '';
+}
+</script>
+{% endblock %}

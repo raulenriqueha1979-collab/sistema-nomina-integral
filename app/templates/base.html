@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Sistema de Nómina Integral{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo">NI</span>
+      <div>
+        <h1>Sistema de Nómina Integral</h1>
+        <p>Liquidación de prestaciones sociales &middot; LOTTT (Venezuela)</p>
+      </div>
+    </div>
+    <nav>
+      <a href="{{ url_for('index') }}">Nueva liquidación</a>
+      <a href="{{ url_for('empresas') }}">Empresas</a>
+    </nav>
+  </header>
+
+  <main>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="flashes">
+          {% for category, msg in messages %}
+            <div class="flash flash-{{ category }}">{{ msg }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer>
+    <p>Cálculos conforme a la Ley Orgánica del Trabajo, los Trabajadores y las Trabajadoras (LOTTT) y su Reglamento.
+    Herramienta de apoyo; verifique siempre con su asesoría legal.</p>
+  </footer>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

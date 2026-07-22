@@ -1,0 +1,178 @@
+{% extends "base.html" %}
+{% block content %}
+<form method="post" action="{{ url_for('calcular') }}" class="grid">
+
+  <section class="card">
+    <h2>1. Empresa</h2>
+    <input type="hidden" name="empresa_id" id="empresa_id" value="{{ datos.empresa_id or '' }}">
+    {% if empresas %}
+    <label>Seleccionar empresa registrada
+      <select id="selector_empresa" onchange="aplicarEmpresa()">
+        <option value="">— Escribir manualmente —</option>
+        {% for e in empresas %}
+        <option value="{{ e.id }}" data-nombre="{{ e.nombre }}" data-rif="{{ e.rif or '' }}"
+          {{ 'selected' if (datos.empresa_id|string) == (e.id|string) }}>{{ e.nombre }}{% if e.rif %} ({{ e.rif }}){% endif %}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <small>¿Falta alguna? <a href="{{ url_for('empresas') }}">Gestiona tus empresas</a> (crea todas las que quieras).</small>
+    {% else %}
+    <small>Aún no tienes empresas registradas. <a href="{{ url_for('empresas') }}">Crea las que necesites</a> o escribe los datos abajo.</small>
+    {% endif %}
+    <div class="row" style="margin-top:12px">
+      <label>Nombre / Razón social
+        <input type="text" name="empresa_nombre" id="empresa_nombre" value="{{ datos.empresa_nombre or '' }}" placeholder="Mi Empresa, C.A.">
+      </label>
+      <label>RIF
+        <input type="text" name="empresa_rif" id="empresa_rif" value="{{ datos.empresa_rif or '' }}" placeholder="J-000000000">
+      </label>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>2. Ficha del trabajador</h2>
+    <div class="row">
+      <label>Nombre y apellido *
+        <input type="text" name="nombre" required value="{{ datos.nombre or '' }}">
+      </label>
+      <label>Cédula de identidad *
+        <input type="text" name="cedula" required value="{{ datos.cedula or '' }}" placeholder="V-00000000">
+      </label>
+    </div>
+    <div class="row">
+      <label>Cargo
+        <input type="text" name="cargo" value="{{ datos.cargo or '' }}">
+      </label>
+      <label>Departamento
+        <input type="text" name="departamento" value="{{ datos.departamento or '' }}">
+      </label>
+    </div>
+    <div class="row">
+      <label>Fecha de ingreso *
+        <input type="date" name="fecha_ingreso" required value="{{ datos.fecha_ingreso or '' }}">
+      </label>
+      <label>Fecha de egreso *
+        <input type="date" name="fecha_egreso" required value="{{ datos.fecha_egreso or '' }}">
+      </label>
+    </div>
+    <label>Motivo de retiro
+      <select name="motivo_retiro">
+        {% set m = datos.motivo_retiro or 'renuncia' %}
+        <option value="renuncia" {{ 'selected' if m=='renuncia' }}>Renuncia voluntaria</option>
+        <option value="despido_justificado" {{ 'selected' if m=='despido_justificado' }}>Despido justificado</option>
+        <option value="despido_injustificado" {{ 'selected' if m=='despido_injustificado' }}>Despido injustificado (genera indemnización Art. 92)</option>
+        <option value="fin_contrato" {{ 'selected' if m=='fin_contrato' }}>Fin de contrato / obra</option>
+      </select>
+    </label>
+  </section>
+
+  <section class="card">
+    <h2>3. Historial salarial</h2>
+    <div class="tabs">
+      <label class="radio"><input type="radio" name="tipo_salario" value="fijo"
+        {{ 'checked' if (datos.tipo_salario or 'fijo')=='fijo' }} onchange="toggleSalario()"> Salario fijo</label>
+      <label class="radio"><input type="radio" name="tipo_salario" value="variable"
+        {{ 'checked' if datos.tipo_salario=='variable' }} onchange="toggleSalario()"> Salario variable (promedio)</label>
+    </div>
+    <div id="bloque-fijo">
+      <label>Salario mensual normal (Bs.)
+        <input type="text" name="salario_mensual" value="{{ datos.salario_mensual or '' }}" placeholder="Ej. 3000.00">
+      </label>
+    </div>
+    <div id="bloque-variable" style="display:none">
+      <label>Salarios mensuales (separados por coma)
+        <input type="text" name="salarios_mensuales" value="{{ datos.salarios_mensuales or '' }}" placeholder="3000, 3600, 4200">
+      </label>
+      <small>Se promediarán los meses indicados para obtener el salario normal.</small>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>4. Parámetros de cálculo</h2>
+    <div class="row">
+      <label>Días de utilidades / año (30 a 120)
+        <input type="number" name="dias_utilidades" min="30" max="120" step="1" value="{{ datos.dias_utilidades or '30' }}">
+      </label>
+      <label>Días base bono vacacional
+        <input type="number" name="dias_bono_base" min="0" step="1" value="{{ datos.dias_bono_base or '15' }}">
+      </label>
+    </div>
+    <div class="row">
+      <label>Días de vacaciones pendientes (años anteriores)
+        <input type="number" name="dias_vac_pendientes" min="0" step="0.01" value="{{ datos.dias_vac_pendientes or '0' }}">
+      </label>
+      <label>Días de bono vacacional pendientes
+        <input type="number" name="dias_bono_pendientes" min="0" step="0.01" value="{{ datos.dias_bono_pendientes or '0' }}">
+      </label>
+    </div>
+    <label class="radio"><input type="checkbox" name="calcular_intereses"
+      {{ 'checked' if datos.calcular_intereses }}> Calcular intereses sobre prestaciones (Art. 143)</label>
+    <label>Tasa de interés anual promedio BCV (%)
+      <input type="number" name="tasa_interes" min="0" step="0.01" value="{{ datos.tasa_interes or '0' }}">
+    </label>
+  </section>
+
+  <section class="card">
+    <h2>5. Deducciones</h2>
+    <div class="row">
+      <label>Anticipo de prestaciones (Bs.)
+        <input type="text" name="anticipo_prestaciones" value="{{ datos.anticipo_prestaciones or '0' }}">
+      </label>
+      <label>Préstamos / adelantos (Bs.)
+        <input type="text" name="prestamos" value="{{ datos.prestamos or '0' }}">
+      </label>
+    </div>
+    <label>Otras deducciones / retenciones (Bs.)
+      <input type="text" name="otras_deducciones" value="{{ datos.otras_deducciones or '0' }}">
+    </label>
+  </section>
+
+  <div class="actions">
+    <label class="radio"><input type="checkbox" name="guardar_ficha"> Guardar ficha del trabajador</label>
+    <button type="submit" class="btn primary">Calcular liquidación</button>
+  </div>
+</form>
+
+{% if fichas %}
+<section class="card fichas">
+  <h2>Fichas guardadas</h2>
+  <table>
+    <thead><tr><th>Trabajador</th><th>Cédula</th><th>Empresa</th><th>Cargo</th><th>Fecha</th><th></th></tr></thead>
+    <tbody>
+    {% for f in fichas %}
+      <tr>
+        <td>{{ f.nombre }}</td><td>{{ f.cedula }}</td><td>{{ f.empresa or '-' }}</td><td>{{ f.cargo or '-' }}</td><td>{{ f.creado }}</td>
+        <td class="ficha-acc">
+          <a class="btn small" href="{{ url_for('cargar_ficha', ficha_id=f.id) }}">Cargar</a>
+          <form method="post" action="{{ url_for('borrar_ficha', ficha_id=f.id) }}" onsubmit="return confirm('¿Eliminar ficha?')">
+            <button class="btn small danger" type="submit">Eliminar</button>
+          </form>
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+function toggleSalario() {
+  var variable = document.querySelector('input[name=tipo_salario][value=variable]').checked;
+  document.getElementById('bloque-fijo').style.display = variable ? 'none' : 'block';
+  document.getElementById('bloque-variable').style.display = variable ? 'block' : 'none';
+}
+toggleSalario();
+
+function aplicarEmpresa() {
+  var sel = document.getElementById('selector_empresa');
+  var opt = sel.options[sel.selectedIndex];
+  document.getElementById('empresa_id').value = sel.value;
+  if (sel.value) {
+    document.getElementById('empresa_nombre').value = opt.dataset.nombre || '';
+    document.getElementById('empresa_rif').value = opt.dataset.rif || '';
+  }
+}
+</script>
+{% endblock %}
