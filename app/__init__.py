@@ -1,4 +1,4 @@
-"""Sistema de Control Fiscal RR - aplicación de liquidaciones (LOTTT)."""
+"""Sistema de Nómina Integral - liquidaciones multiempresa (LOTTT)."""
 
 from .webapp import create_app
 

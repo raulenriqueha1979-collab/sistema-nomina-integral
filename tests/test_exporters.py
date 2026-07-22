@@ -22,7 +22,7 @@ def _resultado():
     hist = HistorialSalarial(salario_mensual=Decimal("4500"))
     par = ParametrosCalculo(
         dias_utilidades_anuales=Decimal("90"),
-        empresa_nombre="Empresa RR, C.A.", empresa_rif="J-12345678-9",
+        empresa_nombre="Mi Empresa, C.A.", empresa_rif="J-12345678-9",
         calcular_intereses=True, tasa_interes_anual=Decimal("28"),
     )
     return calcular_liquidacion(trab, hist, par)

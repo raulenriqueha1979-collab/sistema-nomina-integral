@@ -3,20 +3,21 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{% block title %}Sistema de Control Fiscal RR{% endblock %}</title>
+  <title>{% block title %}Sistema de Nómina Integral{% endblock %}</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
   <header class="topbar">
     <div class="brand">
-      <span class="logo">RR</span>
+      <span class="logo">NI</span>
       <div>
-        <h1>Sistema de Control Fiscal RR</h1>
+        <h1>Sistema de Nómina Integral</h1>
         <p>Liquidación de prestaciones sociales &middot; LOTTT (Venezuela)</p>
       </div>
     </div>
     <nav>
       <a href="{{ url_for('index') }}">Nueva liquidación</a>
+      <a href="{{ url_for('empresas') }}">Empresas</a>
     </nav>
   </header>
 

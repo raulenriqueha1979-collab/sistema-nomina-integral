@@ -1,4 +1,4 @@
-"""Aplicación Flask del Sistema de Control Fiscal RR."""
+"""Aplicación Flask del Sistema de Nómina Integral (multiempresa)."""
 
 from __future__ import annotations
 
@@ -26,7 +26,7 @@ SESSION_KEY = "ultimo_formulario"
 
 def create_app() -> Flask:
     app = Flask(__name__)
-    app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "control-fiscal-rr-dev")
+    app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "sistema-nomina-integral-dev")
     db.init_db()
 
     def _slug(nombre: str) -> str:
@@ -35,7 +35,38 @@ def create_app() -> Flask:
     @app.route("/")
     def index():
         datos = session.get(SESSION_KEY, {})
-        return render_template("index.html", datos=datos, fichas=db.listar_fichas())
+        return render_template(
+            "index.html", datos=datos, fichas=db.listar_fichas(),
+            empresas=db.listar_empresas(),
+        )
+
+    # ------------------------------ Empresas ------------------------------
+    @app.route("/empresas")
+    def empresas():
+        return render_template("empresas.html", empresas=db.listar_empresas())
+
+    @app.route("/empresas/guardar", methods=["POST"])
+    def guardar_empresa():
+        nombre = (request.form.get("nombre") or "").strip()
+        if not nombre:
+            flash("El nombre de la empresa es obligatorio.", "error")
+            return redirect(url_for("empresas"))
+        rif = (request.form.get("rif") or "").strip()
+        direccion = (request.form.get("direccion") or "").strip()
+        empresa_id = request.form.get("empresa_id")
+        if empresa_id:
+            db.actualizar_empresa(int(empresa_id), nombre, rif, direccion)
+            flash("Empresa actualizada.", "ok")
+        else:
+            db.crear_empresa(nombre, rif, direccion)
+            flash("Empresa creada.", "ok")
+        return redirect(url_for("empresas"))
+
+    @app.route("/empresas/<int:empresa_id>/eliminar", methods=["POST"])
+    def borrar_empresa(empresa_id: int):
+        db.eliminar_empresa(empresa_id)
+        flash("Empresa eliminada.", "ok")
+        return redirect(url_for("empresas"))
 
     @app.route("/calcular", methods=["POST"])
     def calcular():
@@ -48,11 +79,13 @@ def create_app() -> Flask:
             return redirect(url_for("index"))
 
         session[SESSION_KEY] = form_a_dict(request.form)
+        empresa_id = request.form.get("empresa_id")
+        empresa_id = int(empresa_id) if empresa_id else None
 
         if request.form.get("guardar_ficha"):
             db.guardar_ficha(
                 trabajador.nombre, trabajador.cedula, trabajador.cargo,
-                session[SESSION_KEY],
+                session[SESSION_KEY], empresa_id=empresa_id,
             )
             flash("Ficha guardada correctamente.", "ok")
 

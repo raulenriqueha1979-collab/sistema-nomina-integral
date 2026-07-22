@@ -64,7 +64,7 @@ def generar_pdf(resultado: ResultadoLiquidacion) -> bytes:
     elems = []
 
     # --- Encabezado empresa ---
-    elems.append(Paragraph(par.empresa_nombre or "SISTEMA DE CONTROL FISCAL RR", h_empresa))
+    elems.append(Paragraph(par.empresa_nombre or "SISTEMA DE NÓMINA INTEGRAL", h_empresa))
     if par.empresa_rif:
         elems.append(Paragraph(f"RIF: {par.empresa_rif}", h_sub))
     elems.append(Paragraph("RECIBO DE FINIQUITO DE LIQUIDACIÓN DE PRESTACIONES SOCIALES", h_titulo))

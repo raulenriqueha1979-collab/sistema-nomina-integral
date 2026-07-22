@@ -1,7 +1,7 @@
-# Sistema de Control Fiscal RR
+# Sistema de Nómina Integral
 
-Sistema web local para el **cálculo de liquidación de prestaciones sociales, vacaciones,
-bono vacacional y utilidades**, ajustado a la legislación laboral vigente en Venezuela
+Sistema web local **multiempresa** para el **cálculo de liquidación de prestaciones sociales,
+vacaciones, bono vacacional y utilidades**, ajustado a la legislación laboral vigente en Venezuela
 (**LOTTT** — Ley Orgánica del Trabajo, los Trabajadores y las Trabajadoras — y su Reglamento).
 
 El sistema es transparente en la fórmula utilizada (incluye *memoria de cálculo* paso a paso)
@@ -21,6 +21,7 @@ y permite exportar el **recibo de finiquito en PDF** y un **informe detallado en
 - **Utilidades (Art. 131)**: mínimo 30 y máximo 120 días, prorrateadas por meses del ejercicio.
 - **Deducciones**: anticipos de prestaciones, préstamos y otras retenciones.
 - **Validación exacta de fechas** (antigüedad en años, meses y días).
+- **Gestión multiempresa**: registra todas las empresas que necesites y asócialas a cada liquidación.
 - Guardado opcional de **fichas** de trabajadores (SQLite).
 - Exportación a **PDF** (ReportLab) y **Excel** (openpyxl).
 
@@ -37,7 +38,7 @@ y permite exportar el **recibo de finiquito en PDF** y un **informe detallado en
 ## Estructura del proyecto
 
 ```
-control-fiscal-rr/
+sistema-nomina-integral/
 ├── app/
 │   ├── calc/               # Motor de cálculo (núcleo, sin dependencias web)
 │   │   ├── models.py       # Modelos de datos (dataclasses)
@@ -49,7 +50,7 @@ control-fiscal-rr/
 │   ├── templates/          # Vistas Jinja2
 │   ├── static/             # Hoja de estilos
 │   ├── forms.py            # Parseo y validación del formulario
-│   ├── db.py               # Persistencia de fichas (SQLite)
+│   ├── db.py               # Persistencia de empresas y fichas (SQLite)
 │   └── webapp.py           # Rutas Flask (create_app)
 ├── tests/                  # Tests unitarios (pytest)
 ├── run.py                  # Entrada local (dev)
@@ -63,7 +64,7 @@ Requiere **Python 3.10 o superior**.
 
 ```bash
 # 1. Clonar y entrar al proyecto
-cd control-fiscal-rr
+cd sistema-nomina-integral
 
 # 2. Crear y activar un entorno virtual
 python3 -m venv .venv
@@ -91,7 +92,8 @@ Los tests verifican la matemática **al centavo** con casos de prueba reales
 
 ## Flujo de uso
 
-1. **Datos de la empresa** (nombre y RIF para el encabezado del recibo).
+1. **Empresa**: selecciona una empresa registrada (o créala en la sección *Empresas*) para el
+   encabezado del recibo. Puedes registrar tantas empresas como quieras.
 2. **Ficha del trabajador** (nombre, C.I., cargo, fechas y motivo de retiro).
 3. **Historial salarial**: salario fijo o variable (promedio de meses).
 4. **Parámetros**: días de utilidades (30–120), vacaciones pendientes, intereses, etc.

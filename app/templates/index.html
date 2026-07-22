@@ -3,13 +3,28 @@
 <form method="post" action="{{ url_for('calcular') }}" class="grid">
 
   <section class="card">
-    <h2>1. Datos de la empresa</h2>
-    <div class="row">
+    <h2>1. Empresa</h2>
+    <input type="hidden" name="empresa_id" id="empresa_id" value="{{ datos.empresa_id or '' }}">
+    {% if empresas %}
+    <label>Seleccionar empresa registrada
+      <select id="selector_empresa" onchange="aplicarEmpresa()">
+        <option value="">— Escribir manualmente —</option>
+        {% for e in empresas %}
+        <option value="{{ e.id }}" data-nombre="{{ e.nombre }}" data-rif="{{ e.rif or '' }}"
+          {{ 'selected' if (datos.empresa_id|string) == (e.id|string) }}>{{ e.nombre }}{% if e.rif %} ({{ e.rif }}){% endif %}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <small>¿Falta alguna? <a href="{{ url_for('empresas') }}">Gestiona tus empresas</a> (crea todas las que quieras).</small>
+    {% else %}
+    <small>Aún no tienes empresas registradas. <a href="{{ url_for('empresas') }}">Crea las que necesites</a> o escribe los datos abajo.</small>
+    {% endif %}
+    <div class="row" style="margin-top:12px">
       <label>Nombre / Razón social
-        <input type="text" name="empresa_nombre" value="{{ datos.empresa_nombre or '' }}" placeholder="Empresa RR, C.A.">
+        <input type="text" name="empresa_nombre" id="empresa_nombre" value="{{ datos.empresa_nombre or '' }}" placeholder="Mi Empresa, C.A.">
       </label>
       <label>RIF
-        <input type="text" name="empresa_rif" value="{{ datos.empresa_rif or '' }}" placeholder="J-000000000">
+        <input type="text" name="empresa_rif" id="empresa_rif" value="{{ datos.empresa_rif or '' }}" placeholder="J-000000000">
       </label>
     </div>
   </section>
@@ -122,11 +137,11 @@
 <section class="card fichas">
   <h2>Fichas guardadas</h2>
   <table>
-    <thead><tr><th>Trabajador</th><th>Cédula</th><th>Cargo</th><th>Fecha</th><th></th></tr></thead>
+    <thead><tr><th>Trabajador</th><th>Cédula</th><th>Empresa</th><th>Cargo</th><th>Fecha</th><th></th></tr></thead>
     <tbody>
     {% for f in fichas %}
       <tr>
-        <td>{{ f.nombre }}</td><td>{{ f.cedula }}</td><td>{{ f.cargo or '-' }}</td><td>{{ f.creado }}</td>
+        <td>{{ f.nombre }}</td><td>{{ f.cedula }}</td><td>{{ f.empresa or '-' }}</td><td>{{ f.cargo or '-' }}</td><td>{{ f.creado }}</td>
         <td class="ficha-acc">
           <a class="btn small" href="{{ url_for('cargar_ficha', ficha_id=f.id) }}">Cargar</a>
           <form method="post" action="{{ url_for('borrar_ficha', ficha_id=f.id) }}" onsubmit="return confirm('¿Eliminar ficha?')">
@@ -149,5 +164,15 @@ function toggleSalario() {
   document.getElementById('bloque-variable').style.display = variable ? 'block' : 'none';
 }
 toggleSalario();
+
+function aplicarEmpresa() {
+  var sel = document.getElementById('selector_empresa');
+  var opt = sel.options[sel.selectedIndex];
+  document.getElementById('empresa_id').value = sel.value;
+  if (sel.value) {
+    document.getElementById('empresa_nombre').value = opt.dataset.nombre || '';
+    document.getElementById('empresa_rif').value = opt.dataset.rif || '';
+  }
+}
 </script>
 {% endblock %}

@@ -41,7 +41,7 @@ def generar_excel(resultado: ResultadoLiquidacion) -> bytes:
     trab = resultado.trabajador
     par = resultado.parametros
 
-    _titulo(ws, "A1", par.empresa_nombre or "Sistema de Control Fiscal RR")
+    _titulo(ws, "A1", par.empresa_nombre or "Sistema de Nómina Integral")
     ws["A2"] = f"RIF: {par.empresa_rif}" if par.empresa_rif else ""
     _titulo(ws, "A3", "Recibo de Liquidación de Prestaciones Sociales (LOTTT)")
 

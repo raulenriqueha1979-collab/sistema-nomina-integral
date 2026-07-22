@@ -112,6 +112,7 @@ def _validar_topes(par: ParametrosCalculo) -> None:
 def form_a_dict(form: Dict) -> Dict:
     """Extrae los campos relevantes del formulario para guardar/reconstruir."""
     campos = [
+        "empresa_id",
         "nombre", "cedula", "cargo", "departamento", "fecha_ingreso", "fecha_egreso",
         "motivo_retiro", "tipo_salario", "salario_mensual", "salarios_mensuales",
         "dias_utilidades", "dias_bono_base", "dias_vac_base", "dias_vac_pendientes",
