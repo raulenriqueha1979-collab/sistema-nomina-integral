@@ -29,8 +29,8 @@ from .models import (
 )
 from .money import D, money, rate
 
-# Tope máximo de días adicionales acumulables (Art. 142 lit. b).
-TOPE_DIAS_ADICIONALES = 30
+# Tope máximo de días adicionales por año de servicio (Art. 142 lit. c).
+TOPE_DIAS_ADICIONALES_POR_ANIO = 30
 # Tope de días de vacaciones/bono vacacional (Art. 190 / 192).
 TOPE_DIAS_VACACIONES = 30
 DIAS_MES = D("30")
@@ -82,10 +82,14 @@ def _dias_por_antiguedad(anios_cumplidos: int, base: int, tope: int) -> int:
 
 
 def _dias_adicionales_prestaciones(anios: int) -> int:
-    """Días adicionales Art. 142 lit. b: 2 días por año a partir del 2º, tope 30."""
+    """Días adicionales acumulados Art. 142 lit. c:
+    
+    2 días por cada año de servicio a partir del 2º año transcurrido.
+    (Ejemplo: 23 años = (23 - 1) * 2 = 44 días acumulados).
+    """
     if anios < 2:
         return 0
-    return min(2 * (anios - 1), TOPE_DIAS_ADICIONALES)
+    return (anios - 1) * 2
 
 
 def _vacaciones_fraccionadas_dias(
@@ -155,8 +159,8 @@ def calcular_liquidacion(
         (dias_garantia + dias_adicionales) * salario_integral_diario
     )
     memoria.append(
-        f"Garantía (Art. 142 a/b): {ant.trimestres_completos} trimestres x 15 = "
-        f"{dias_garantia} días + {dias_adicionales} días adicionales (Art. 142 c) "
+        f"Garantía (Art. 142 a/b/c): {ant.trimestres_completos} trimestres x 15 = "
+        f"{dias_garantia} días + {dias_adicionales} días adicionales acumulados (Art. 142 c) "
         f"= {dias_garantia + dias_adicionales} días x {salario_integral_diario} "
         f"= Bs. {monto_garantia}."
     )
@@ -296,12 +300,8 @@ def calcular_liquidacion(
         )
 
     # --- Utilidades fraccionadas (Art. 131) ---
-    # Prorrateo por meses completos del ejercicio fiscal (año de egreso).
     meses_ejercicio = trabajador.fecha_egreso.month
-    if (
-        trabajador.fecha_ingreso.year == trabajador.fecha_egreso.year
-    ):
-        # Ingresó el mismo año: contar desde el mes de ingreso.
+    if trabajador.fecha_ingreso.year == trabajador.fecha_egreso.year:
         meses_ejercicio = (
             trabajador.fecha_egreso.month - trabajador.fecha_ingreso.month + 1
         )
@@ -371,3 +371,4 @@ def calcular_liquidacion(
         neto_pagar=neto,
         memoria=memoria,
     )
+   
